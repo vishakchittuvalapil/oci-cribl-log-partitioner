@@ -13,6 +13,7 @@ This follows [Cribl's OCI guidance](https://cribl.io/blog/capturing-security-and
 ## What This Deploys
 
 ```text
+Functions application
 OCI Function
 Function container image in OCIR
 Object Storage bucket for Cribl to read
@@ -27,6 +28,15 @@ Function: cribl-oci-log-partitioner
 ```
 
 Do not use Object Storage as the Service Connector target for this version. The Function is the target because it writes the final Cribl partitioned object path into Object Storage.
+
+Resource order:
+
+```text
+1. Configure the Fn CLI context
+2. Create or reuse a Functions application
+3. Deploy the Function into that application
+4. Create the Service Connector manually after selecting logs
+```
 
 ## Step 1: Open Cloud Shell
 
@@ -90,7 +100,9 @@ Use the OCI Auth Token as the password.
 
 Oracle documents the required username format as `<namespace>/<username>` or `<namespace>/<domain-name>/<username>` for federated/domain users: [Log in to OCIR](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionslogintoocir.htm).
 
-## Step 4: Configure Fn
+## Step 4: Configure The Fn CLI Context
+
+This step only configures the local Fn CLI in Cloud Shell. It does not create the OCI Function yet.
 
 Cloud Shell normally already has Fn contexts. Select your region context and point it to your compartment and OCIR repo prefix:
 
