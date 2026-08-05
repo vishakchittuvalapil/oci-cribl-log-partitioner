@@ -91,6 +91,7 @@ outputs.tf                      Root Terraform outputs for Resource Manager
 examples/                       Placeholder OCI config examples
 docs/                           Step-by-step setup guides
 scripts/                        Helper scripts with placeholder values
+image-builder-stack/            Resource Manager stack that builds/pushes the Function image with OCI DevOps
 resource-manager-stack/         Terraform implementation used by the root wrapper
 ```
 
@@ -274,11 +275,22 @@ Callout:
 Build and push the Function image to OCIR before applying the stack.
 ```
 
-Resource Manager runs Terraform and provisions OCI resources, but it does not build the Docker image from this repo. Pass the prebuilt image URI using the `function_image` variable.
+Resource Manager runs Terraform and provisions OCI resources, but it does not build the Docker image from this repo directly.
+
+Recommended OCI-native path for users who do not already have an image:
+
+```text
+Run image-builder-stack first.
+Copy its function_image output.
+Paste that value into this stack's function_image variable.
+```
+
+The image-builder stack creates an OCI DevOps build pipeline that builds from GitHub and delivers the image to the user's own OCIR repository.
 
 See:
 
 ```text
+image-builder-stack/README.md
 resource-manager-stack/README.md
 ```
 

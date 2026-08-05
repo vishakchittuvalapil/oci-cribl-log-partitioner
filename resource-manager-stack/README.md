@@ -16,7 +16,15 @@ Optional IAM dynamic group and policies
 
 Resource Manager runs Terraform. It does not build and push the Function container image from the `Dockerfile`.
 
-Before applying this stack, build and push the image to OCIR:
+Before applying this stack, either run the repo's image-builder stack or build and push the image to OCIR manually:
+
+```text
+image-builder-stack
+```
+
+The image-builder stack creates an OCI DevOps build pipeline that builds from GitHub and delivers the image to OCIR.
+
+The resulting image URI looks like this:
 
 ```text
 <region-key>.ocir.io/<namespace>/cribl-oci-log-partitioner/function:0.0.1

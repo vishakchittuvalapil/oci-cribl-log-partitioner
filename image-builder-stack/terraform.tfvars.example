@@ -1,0 +1,19 @@
+tenancy_ocid     = "<TENANCY_OCID>"
+compartment_ocid = "<COMPARTMENT_OCID>"
+region           = "us-ashburn-1"
+
+repository_url    = "https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner.git"
+repository_branch = "main"
+
+# Option A: reuse an existing OCI DevOps GitHub connection.
+create_github_connection     = false
+existing_github_connection_id = "<DEVOPS_GITHUB_CONNECTION_OCID>"
+
+# Option B: create a new OCI DevOps GitHub connection from a Vault secret.
+# create_github_connection      = true
+# github_access_token_secret_id = "<VAULT_SECRET_OCID_CONTAINING_GITHUB_PAT>"
+
+ocir_repository_name = "cribl-oci-log-partitioner/function"
+image_tag            = "0.0.1"
+
+run_build = true
