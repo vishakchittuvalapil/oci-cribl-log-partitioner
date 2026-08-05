@@ -14,7 +14,7 @@ Example:
 cribl/2026/08/05/09/18/oci-vcn-flow/oci-log-20260805T091812Z-65100b13ca474f549246c357e7b2f28d.json.gz
 ```
 
-This aligns with the Cribl guidance to include year, month, day, hour, and optionally minute in the bucket path so Cribl can perform time-based filtering without scanning the whole bucket.
+This aligns with [Cribl's OCI guidance](https://cribl.io/blog/capturing-security-and-observability-data-from-oracle-cloud/) to include year, month, day, hour, and optionally minute in the bucket path so Cribl can perform time-based filtering without scanning the whole bucket.
 
 ## Architecture
 
