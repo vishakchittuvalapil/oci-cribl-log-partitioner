@@ -53,6 +53,14 @@ Alternative: create_github_connection = true and github_access_token_secret_id
 
 For the alternative path, store the GitHub token in OCI Vault and pass the Vault secret OCID. Do not paste GitHub tokens into Resource Manager variables.
 
+If the OCIR repository already exists, set:
+
+```text
+create_ocir_repository = false
+```
+
+This is common when rerunning the stack after a failed first attempt.
+
 ## After Apply
 
 Copy the output:

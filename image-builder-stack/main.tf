@@ -36,6 +36,13 @@ resource "oci_devops_connection" "github" {
   display_name    = "Cribl OCI Log Partitioner GitHub"
   description     = "GitHub source connection for Cribl OCI log partitioner Function image builds"
   freeform_tags   = var.freeform_tags
+
+  lifecycle {
+    precondition {
+      condition     = trimspace(var.github_access_token_secret_id) != ""
+      error_message = "When create_github_connection is true, github_access_token_secret_id must be an OCI Vault secret OCID containing a GitHub token."
+    }
+  }
 }
 
 resource "oci_artifacts_container_repository" "function" {
@@ -130,6 +137,13 @@ resource "oci_devops_build_pipeline_stage" "build" {
       connection_id   = local.github_connection_id
       name            = var.build_source_name
       repository_url  = var.repository_url
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.create_github_connection || trimspace(var.existing_github_connection_id) != ""
+      error_message = "Provide existing_github_connection_id, or set create_github_connection=true and provide github_access_token_secret_id."
     }
   }
 }

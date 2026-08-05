@@ -64,6 +64,12 @@ create_github_connection = true
 github_access_token_secret_id = <OCI Vault secret OCID containing GitHub token>
 ```
 
+If the OCIR repository already exists, set:
+
+```text
+create_ocir_repository = false
+```
+
 After **Apply**, copy the output:
 
 ```text

@@ -24,7 +24,7 @@ variables:
     description: "Create a new OCI DevOps GitHub connection from an OCI Vault secret."
   existing_github_connection_id:
     title: "Existing GitHub Connection OCID"
-    description: "Existing OCI DevOps GitHub connection OCID."
+    description: "Existing OCI DevOps GitHub connection OCID. Required unless Create GitHub Connection is enabled."
   github_access_token_secret_id:
     title: "GitHub Token Secret OCID"
     description: "OCI Vault secret OCID containing a GitHub token."
@@ -36,7 +36,7 @@ variables:
     description: "Function image tag to publish."
   create_ocir_repository:
     title: "Create OCIR Repository"
-    description: "Create the OCIR repository. Disable only if it already exists."
+    description: "Create the OCIR repository. Disable this if the repository already exists or if you are rerunning after a repository conflict."
   ocir_repository_is_public:
     title: "Public OCIR Repository"
     description: "Make the OCIR repository public."
