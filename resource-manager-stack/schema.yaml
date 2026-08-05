@@ -8,17 +8,21 @@ variables:
     description: "OCI tenancy OCID. Resource Manager normally prepopulates this value."
     visible: false
   compartment_ocid:
+    type: oci:identity:compartment:id
+    required: true
     title: "Compartment OCID"
     description: "Compartment where the runtime stack creates the bucket, Function, connector, and policies."
   region:
+    type: oci:identity:region:name
+    required: true
     title: "Region"
     description: "OCI region for the deployment, for example us-ashburn-1."
   function_image:
     title: "Function Image"
-    description: "Image URI output from the image-builder stack."
+    description: "Prebuilt Function image URI. Keep the default, or override it with your own image URI if you build manually from Cloud Shell."
   function_image_digest:
     title: "Function Image Digest"
-    description: "Optional image digest output from the image-builder stack."
+    description: "Optional image digest to pin the exact Function image. Keep the default unless you build your own image."
   log_sources:
     title: "Log Sources"
     description: "OCI Logging source OCIDs and the Cribl log_type folder names to use."
@@ -94,7 +98,6 @@ variableGroups:
       - ${tenancy_ocid}
       - ${compartment_ocid}
       - ${region}
-      - ${function_image}
       - ${log_sources}
   - title: "Object Storage"
     variables:
@@ -111,6 +114,7 @@ variableGroups:
       - ${functions_application_name}
       - ${functions_application_shape}
       - ${function_name}
+      - ${function_image}
       - ${function_image_digest}
       - ${function_memory_in_mbs}
       - ${function_timeout_in_seconds}

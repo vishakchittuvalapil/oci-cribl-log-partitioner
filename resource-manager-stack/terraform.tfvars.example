@@ -1,4 +1,3 @@
-tenancy_ocid     = "<TENANCY_OCID>"
 compartment_ocid = "<COMPARTMENT_OCID>"
 region           = "us-ashburn-1"
 
@@ -7,8 +6,9 @@ create_bucket  = true
 object_prefix  = "cribl"
 include_minute = true
 
-# Use the function_image output from image-builder-stack.
-function_image = "ocir.<region>.oci.oraclecloud.com/<OBJECT_STORAGE_NAMESPACE>/cribl-oci-log-partitioner/function:0.0.1"
+# Optional: override only if you build and push your own image.
+function_image        = "iad.ocir.io/id3kvohtwgjy/cribl-oci-log-partitioner/function:0.0.1"
+function_image_digest = "sha256:f6e957b424be5948324d39c6559f9597419c977e887e79d2b24b8e2fc0779fc1"
 
 # Reuse an existing Functions app by default.
 create_functions_application      = false

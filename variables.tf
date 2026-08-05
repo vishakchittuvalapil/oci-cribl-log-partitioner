@@ -11,6 +11,7 @@ variable "compartment_ocid" {
 variable "region" {
   description = "OCI region, for example us-ashburn-1."
   type        = string
+  default     = "us-ashburn-1"
 }
 
 variable "object_storage_namespace" {
@@ -54,14 +55,15 @@ variable "log_sources" {
 }
 
 variable "function_image" {
-  description = "OCIR image URI for the prebuilt Function container, for example iad.ocir.io/namespace/cribl-oci-log-partitioner/function:0.0.1."
+  description = "OCIR image URI for the prebuilt Function container. The default image is published for us-ashburn-1; override it if you build your own image."
   type        = string
+  default     = "iad.ocir.io/id3kvohtwgjy/cribl-oci-log-partitioner/function:0.0.1"
 }
 
 variable "function_image_digest" {
   description = "Optional image digest to pin the exact Function image."
   type        = string
-  default     = ""
+  default     = "sha256:f6e957b424be5948324d39c6559f9597419c977e887e79d2b24b8e2fc0779fc1"
 }
 
 variable "function_name" {

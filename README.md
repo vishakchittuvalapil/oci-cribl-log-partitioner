@@ -1,8 +1,10 @@
 # OCI Logs to Cribl Resource Manager Deployment
 
-This repository is focused on **OCI Resource Manager deployment only**.
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/main.zip)
 
-It deploys an OCI log pipeline that writes Cribl-friendly Object Storage paths:
+This repository is focused on a **Resource Manager-style deployment** for sending OCI logs to Cribl through Object Storage.
+
+The Function writes objects using Cribl-friendly paths:
 
 ```text
 cribl/YYYY/MM/DD/HH/MM/<log_type>/oci-log-<timestamp>-<uuid>.json.gz
@@ -12,103 +14,59 @@ This follows [Cribl's OCI guidance](https://cribl.io/blog/capturing-security-and
 
 ## Deployment Flow
 
-Use two OCI Resource Manager stacks:
+Click **Deploy to Oracle Cloud** and create one Resource Manager stack.
+
+The stack creates:
 
 ```text
-Stack 1: image-builder-stack
-  -> Builds the Function image in the user's OCI tenancy using OCI DevOps
-  -> Pushes the image to the user's OCIR repository
-  -> Outputs function_image
-
-Stack 2: runtime stack
-  -> Creates Object Storage bucket
-  -> Creates or reuses OCI Functions application
-  -> Creates OCI Function from function_image
-  -> Creates Service Connector Hub connector
-  -> Creates IAM policies
+Object Storage bucket
+OCI Function
+Service Connector Hub connector
+Optional Functions application
+IAM policies for log read, Function invoke, and bucket write
 ```
 
-No local Docker, Cloud Shell, OCI CLI, or manual script execution is required for the main deployment path.
+No OCI DevOps stack, GitHub connection, Vault secret, Cloud Shell, or local Docker build is required for the default deployment.
 
-## Step 1: Build The Function Image
+## Prebuilt Image
 
-[![Deploy Image Builder to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/deploy-image-builder.zip)
-
-Use the button above to create the image-builder stack in OCI Resource Manager.
-
-It uses a dedicated deploy branch where the `image-builder-stack` Terraform files are packaged at the zip root, which is required by the OCI deploy button.
-
-You can also create the stack from GitHub:
+The stack uses this prebuilt Function image by default:
 
 ```text
-Repository URL: https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
-Branch: main
-Working directory: image-builder-stack
-Terraform version: 1.5.x
+iad.ocir.io/id3kvohtwgjy/cribl-oci-log-partitioner/function:0.0.1
 ```
 
-This stack creates an OCI DevOps build pipeline that builds the Function image from this repo and delivers it to OCI Container Registry.
-
-Required input:
+Pinned digest:
 
 ```text
-compartment_ocid
-region
-existing_github_connection_id
+sha256:f6e957b424be5948324d39c6559f9597419c977e887e79d2b24b8e2fc0779fc1
 ```
 
-If you want the stack to create the GitHub connection, use:
+This default is intended for `us-ashburn-1`. If you deploy in another region or want to own the image in your tenancy, override `function_image` and optionally `function_image_digest`.
+
+Maintainer callout:
 
 ```text
-create_github_connection = true
-github_access_token_secret_id = <OCI Vault secret OCID containing GitHub token>
+For this default image to work for users outside your tenancy, the OCIR repository that hosts it must be public or otherwise readable by those users.
 ```
 
-If the OCIR repository already exists, set:
+## Required Inputs
+
+Resource Manager prepopulates common OCI values such as tenancy, compartment, and region.
+
+You provide:
 
 ```text
-create_ocir_repository = false
-```
-
-After **Apply**, copy the output:
-
-```text
-function_image
-```
-
-Example:
-
-```text
-ocir.us-ashburn-1.oci.oraclecloud.com/<namespace>/cribl-oci-log-partitioner/function:0.0.1
-```
-
-## Step 2: Deploy The OCI To Cribl Pipeline
-
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/main.zip)
-
-Use the button above after Step 1.
-
-The button opens OCI Resource Manager using the root Terraform wrapper. It deploys the runtime stack.
-
-You can also create the runtime stack from GitHub:
-
-```text
-Repository URL: https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
-Branch: main
-Working directory: resource-manager-stack
-Terraform version: 1.5.x
-```
-
-Required input:
-
-```text
-compartment_ocid
-region
-function_image
 log_sources
+existing_functions_application_id
 ```
 
-Use the `function_image` output from Step 1.
+If you want the stack to create a new Functions application, set:
+
+```text
+create_functions_application = true
+functions_subnet_ids = ["<SUBNET_OCID>"]
+```
 
 ## Log Sources
 
@@ -140,30 +98,6 @@ cribl/YYYY/MM/DD/HH/MM/oci-vcn-flow/
 cribl/YYYY/MM/DD/HH/MM/oci-object-storage/
 ```
 
-## What Gets Created
-
-The image-builder stack creates:
-
-```text
-OCIR repository
-OCI DevOps project
-OCI DevOps build pipeline
-Managed Build stage
-Deliver Artifacts stage
-Build run
-IAM policy for DevOps image publishing
-```
-
-The runtime stack creates:
-
-```text
-Object Storage bucket
-OCI Function
-Service Connector Hub connector
-Optional Functions application
-IAM policies for log read, Function invoke, and bucket write
-```
-
 ## Cribl Collector Settings
 
 Configure Cribl to read from OCI Object Storage using the S3-compatible collector/source.
@@ -177,21 +111,93 @@ Format: json or ndjson
 Compression: gzip
 ```
 
+## Manual Image Build From Cloud Shell
+
+This is optional. Use it only if you want to publish your own Function image instead of the default prebuilt image.
+
+1. Open **OCI Cloud Shell**.
+
+2. Clone the repo:
+
+```bash
+git clone https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner.git
+cd oci-cribl-log-partitioner
+```
+
+3. Set image variables:
+
+```bash
+export REGION_KEY=iad
+export NAMESPACE="$(oci os ns get --query data --raw-output)"
+export REPO_NAME=cribl-oci-log-partitioner/function
+export TAG=0.0.1
+export IMAGE="${REGION_KEY}.ocir.io/${NAMESPACE}/${REPO_NAME}:${TAG}"
+echo "${IMAGE}"
+```
+
+4. Create the OCIR repository:
+
+```bash
+oci artifacts container repository create \
+  --compartment-id "<COMPARTMENT_OCID>" \
+  --display-name "${REPO_NAME}" \
+  --is-public false
+```
+
+If the repository already exists, continue.
+
+5. Generate an OCI Auth Token:
+
+```text
+Profile -> My profile -> Tokens and keys -> Auth tokens -> Generate token
+```
+
+6. Log in to OCIR from Cloud Shell:
+
+```bash
+podman login "${REGION_KEY}.ocir.io"
+```
+
+Username format:
+
+```text
+<namespace>/<oci-username>
+```
+
+If your tenancy uses identity domains:
+
+```text
+<namespace>/<identity-domain>/<oci-username>
+```
+
+Use the OCI Auth Token as the password.
+
+7. Build and push the image:
+
+```bash
+podman build --platform linux/amd64 -t "${IMAGE}" .
+podman push "${IMAGE}"
+```
+
+8. Copy the image URI printed in Step 3 and override the Resource Manager variable:
+
+```text
+function_image = <your image URI>
+```
+
 ## Repository Contents
 
 ```text
 README.md                 Resource Manager deployment guide
-Dockerfile                Function image build definition used by OCI DevOps
+Dockerfile                Function image build definition
 func.py                   Function code that writes Cribl-friendly paths
 requirements.txt          Function Python dependencies
-build_spec.yaml           OCI DevOps build spec
-image-builder-stack/      Resource Manager stack that builds/pushes the image
-resource-manager-stack/   Resource Manager stack that deploys OCI logging pipeline
+resource-manager-stack/   Resource Manager stack that deploys the OCI logging pipeline
 main.tf                   Root wrapper for the Deploy to Oracle Cloud button
 variables.tf              Root runtime stack variables
 versions.tf               Root Terraform/provider constraints
 outputs.tf                Root runtime stack outputs
-schema.yaml               Resource Manager UI metadata for the root stack
+schema.yaml               Resource Manager UI metadata
 ```
 
 ## References
@@ -199,4 +205,3 @@ schema.yaml               Resource Manager UI metadata for the root stack
 - [Cribl OCI guidance](https://cribl.io/blog/capturing-security-and-observability-data-from-oracle-cloud/)
 - [OCI Resource Manager Terraform configuration requirements](https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Concepts/terraformconfigresourcemanager.htm)
 - [OCI Resource Manager schema documents](https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Concepts/terraformconfigresourcemanager_topic-schema.htm)
-- [OCI DevOps build specifications](https://docs.oracle.com/en-us/iaas/Content/devops/using/build_specs.htm)
