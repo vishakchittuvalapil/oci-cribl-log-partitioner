@@ -46,7 +46,17 @@ cribl/YYYY/MM/DD/HH/MM/<log_type>/oci-log-<timestamp>-<uuid>.json.gz
 
 ## How to Use in OCI Resource Manager
 
-### Option 1: Git Source
+### Option 1: Deploy Button
+
+Use the **Deploy to Oracle Cloud** button in the repository root README:
+
+```text
+https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
+```
+
+This sends the repository zip package to Resource Manager. The repo root contains a small Terraform wrapper that calls this `resource-manager-stack` folder as a local module, so no GitHub Configuration Source Provider is required for that path.
+
+### Option 2: Git Source
 
 1. Open OCI Console.
 2. Go to **Developer Services**.
@@ -72,7 +82,7 @@ cribl/YYYY/MM/DD/HH/MM/<log_type>/oci-log-<timestamp>-<uuid>.json.gz
 12. Review the plan.
 13. Run **Apply**.
 
-### Option 2: Zip Upload
+### Option 3: Zip Upload
 
 Create a zip from this folder:
 

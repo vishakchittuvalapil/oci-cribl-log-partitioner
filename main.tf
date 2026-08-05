@@ -1,0 +1,32 @@
+module "cribl_oci_log_partitioner" {
+  source = "./resource-manager-stack"
+
+  tenancy_ocid                      = var.tenancy_ocid
+  compartment_ocid                  = var.compartment_ocid
+  region                            = var.region
+  object_storage_namespace          = var.object_storage_namespace
+  bucket_name                       = var.bucket_name
+  create_bucket                     = var.create_bucket
+  object_prefix                     = var.object_prefix
+  include_minute                    = var.include_minute
+  log_sources                       = var.log_sources
+  function_image                    = var.function_image
+  function_image_digest             = var.function_image_digest
+  function_name                     = var.function_name
+  function_memory_in_mbs            = var.function_memory_in_mbs
+  function_timeout_in_seconds       = var.function_timeout_in_seconds
+  create_functions_application      = var.create_functions_application
+  existing_functions_application_id = var.existing_functions_application_id
+  functions_application_name        = var.functions_application_name
+  functions_subnet_ids              = var.functions_subnet_ids
+  functions_application_shape       = var.functions_application_shape
+  service_connector_name            = var.service_connector_name
+  service_connector_description     = var.service_connector_description
+  connector_batch_size_in_num       = var.connector_batch_size_in_num
+  connector_batch_time_in_sec       = var.connector_batch_time_in_sec
+  create_iam_resources              = var.create_iam_resources
+  dynamic_group_name                = var.dynamic_group_name
+  function_bucket_policy_name       = var.function_bucket_policy_name
+  service_connector_policy_name     = var.service_connector_policy_name
+  freeform_tags                     = var.freeform_tags
+}

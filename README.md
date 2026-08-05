@@ -1,5 +1,9 @@
 # OCI Logs to Cribl via Object Storage
 
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/main.zip)
+
+*If you are logged in to your OCI tenancy in the commercial realm (OC1), this button opens OCI Resource Manager with this stack package selected. If you are not logged in, OCI asks for your tenancy name and login first.*
+
 This project shows how to capture OCI logs, write them to an OCI Object Storage bucket with Cribl-friendly time partitions, and collect them from Cribl.
 
 The generated Object Storage keys look like this:
@@ -80,10 +84,14 @@ Dockerfile                      Container image for OCI Functions
 func.yaml                       Function metadata
 requirements.txt                Python dependencies
 build_spec.yaml                 OCI DevOps build spec template
+main.tf                         Root Terraform wrapper for the Deploy to Oracle Cloud button
+variables.tf                    Root Terraform variables for Resource Manager
+versions.tf                     Root Terraform and OCI provider constraints
+outputs.tf                      Root Terraform outputs for Resource Manager
 examples/                       Placeholder OCI config examples
 docs/                           Step-by-step setup guides
 scripts/                        Helper scripts with placeholder values
-resource-manager-stack/         Terraform stack for OCI Resource Manager
+resource-manager-stack/         Terraform implementation used by the root wrapper
 ```
 
 ## Step-by-Step Setup
@@ -234,10 +242,20 @@ docs/cribl-collector-setup.md
 
 You can also deploy the OCI resources as a Resource Manager stack.
 
-Use this working directory:
+Fast path:
 
 ```text
-resource-manager-stack
+Click the Deploy to Oracle Cloud button at the top of this README.
+```
+
+This uses Oracle's `zipUrl` deploy-button flow, so you do not need to create or select a GitHub Configuration Source Provider.
+
+Manual Git source path:
+
+```text
+Repository URL: https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
+Branch: main
+Working directory: resource-manager-stack
 ```
 
 The stack creates:
