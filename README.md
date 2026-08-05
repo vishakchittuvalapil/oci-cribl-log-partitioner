@@ -91,6 +91,7 @@ Oracle documents the required username format as `<namespace>/<username>` or `<n
 ```bash
 podman build --layers=false --platform linux/amd64 -t "${IMAGE}" .
 podman push "${IMAGE}"
+echo "${IMAGE}"
 ```
 
 If Cloud Shell reports `no space left on device`, clean unused local Podman build data and retry:
@@ -99,11 +100,12 @@ If Cloud Shell reports `no space left on device`, clean unused local Podman buil
 podman system prune --all --force --volumes
 podman build --layers=false --no-cache --platform linux/amd64 -t "${IMAGE}" .
 podman push "${IMAGE}"
+echo "${IMAGE}"
 ```
 
 This cleanup affects only unused local Cloud Shell container images, containers, volumes, and build cache. It does not delete OCI resources or images already pushed to OCIR.
 
-8. Copy the image URI printed in Step 3:
+8. Copy the image URI printed after the push:
 
 ```text
 <REGION_KEY>.ocir.io/<NAMESPACE>/cribl-oci-log-partitioner/function:0.0.1
