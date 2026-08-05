@@ -67,27 +67,13 @@ If the repository already exists, continue.
 Profile -> My profile -> Tokens and keys -> Auth tokens -> Generate token
 ```
 
-6. Set your OCIR username and log in from Cloud Shell.
-
-For most identity-domain tenancies, use:
+6. Set your OCIR username and log in from Cloud Shell:
 
 ```bash
-export OCIR_USERNAME="${NAMESPACE}/Default/<OCI_USERNAME>"
+export OCIR_USERNAME="${NAMESPACE}/<Domain_name>/<OCI_USERNAME>"
 ```
 
-For older IDCS/federated tenancies, use:
-
-```bash
-export OCIR_USERNAME="${NAMESPACE}/oracleidentitycloudservice/<OCI_USERNAME>"
-```
-
-For local OCI users without an identity domain, use:
-
-```bash
-export OCIR_USERNAME="${NAMESPACE}/<OCI_USERNAME>"
-```
-
-Replace `<OCI_USERNAME>` with the username shown in your OCI profile, usually an email address.
+Replace `<Domain_name>` with your OCI identity domain, such as `Default`, and replace `<OCI_USERNAME>` with the username shown in your OCI profile, usually an email address.
 
 Then log in:
 
