@@ -1,6 +1,0 @@
-{
-  "kind": "functions",
-  "functionId": "<FUNCTION_OCID>",
-  "batchSizeInNum": 100,
-  "batchTimeInSec": 60
-}

@@ -1,128 +1,57 @@
-# OCI Resource Manager Stack
+# Runtime Resource Manager Stack
 
-This folder contains a Terraform configuration that can be used as an OCI Resource Manager stack.
+This stack deploys the OCI logging pipeline for Cribl.
 
-It provisions the OCI side of the Cribl log partitioner:
+It creates:
 
 ```text
 Object Storage bucket
 OCI Function
 Service Connector Hub connector
 Optional Functions application
-Optional IAM dynamic group and policies
+IAM policies
 ```
 
-## Important Build Boundary
-
-Resource Manager runs Terraform. It does not build and push the Function container image from the `Dockerfile`.
-
-Before applying this stack, either run the repo's image-builder stack or build and push the image to OCIR manually:
-
-```text
-image-builder-stack
-```
-
-The image-builder stack creates an OCI DevOps build pipeline that builds from GitHub and delivers the image to OCIR.
-
-The resulting image URI looks like this:
-
-```text
-<region-key>.ocir.io/<namespace>/cribl-oci-log-partitioner/function:0.0.1
-```
-
-Then pass that image URI as:
-
-```text
-function_image
-```
-
-## Final Runtime Flow
-
-```text
-OCI Logging
-  -> Service Connector Hub
-  -> OCI Function target
-  -> Object Storage bucket
-  -> Cribl S3 Collector
-```
-
-The Function writes objects using this Cribl-friendly path:
+The Function writes objects like:
 
 ```text
 cribl/YYYY/MM/DD/HH/MM/<log_type>/oci-log-<timestamp>-<uuid>.json.gz
 ```
 
-## How to Use in OCI Resource Manager
+## Before Running This Stack
 
-### Option 1: Deploy Button
-
-Use the **Deploy to Oracle Cloud** button in the repository root README:
+Run the image-builder stack first:
 
 ```text
-https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
+image-builder-stack
 ```
 
-This sends the repository zip package to Resource Manager. The repo root contains a small Terraform wrapper that calls this `resource-manager-stack` folder as a local module, so no GitHub Configuration Source Provider is required for that path.
-
-### Option 2: Git Source
-
-1. Open OCI Console.
-2. Go to **Developer Services**.
-3. Go to **Resource Manager**.
-4. Select **Stacks**.
-5. Select **Create stack**.
-6. Choose **Source code control system** or **Git** as the Terraform source.
-7. Use this repository:
-
-   ```text
-   https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
-   ```
-
-8. Set the working directory to:
-
-   ```text
-   resource-manager-stack
-   ```
-
-9. Use Terraform version `1.5.x` in Resource Manager.
-10. Enter the variables.
-11. Run **Plan**.
-12. Review the plan.
-13. Run **Apply**.
-
-### Option 3: Zip Upload
-
-Create a zip from this folder:
-
-```bash
-cd resource-manager-stack
-zip -r ../oci-cribl-log-partitioner-stack.zip .
-```
-
-Upload the zip to Resource Manager as the stack configuration.
-
-## Required Variables
+Copy its output:
 
 ```text
-tenancy_ocid
+function_image
+```
+
+Use that value for this stack's `function_image` variable.
+
+## Resource Manager Inputs
+
+Create a Resource Manager stack from GitHub:
+
+```text
+Repository URL: https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
+Branch: main
+Working directory: resource-manager-stack
+Terraform version: 1.5.x
+```
+
+Required variables:
+
+```text
 compartment_ocid
 region
 function_image
 log_sources
-```
-
-If reusing an existing Functions application:
-
-```text
-create_functions_application = false
-existing_functions_application_id = <existing_app_ocid>
-```
-
-If creating a new Functions application:
-
-```text
-create_functions_application = true
-functions_subnet_ids = ["<subnet_ocid>"]
 ```
 
 ## Log Source Example
@@ -137,43 +66,26 @@ log_sources = [
   },
   {
     compartment_id = "<COMPARTMENT_OCID>"
-    log_group_id   = "<LOG_GROUP_OCID>"
+    log_group_id   = "<OBJECT_STORAGE_LOG_GROUP_OCID>"
     log_id         = "<OBJECT_STORAGE_LOG_OCID>"
     log_type       = "oci-object-storage"
   }
 ]
 ```
 
-The `log_type` value becomes the Object Storage folder:
+The `log_type` value becomes the Cribl partition folder:
 
 ```text
 cribl/YYYY/MM/DD/HH/MM/oci-vcn-flow/
 ```
 
-## IAM Scope Callout
-
-The default IAM policy assumes:
-
-```text
-Function, bucket, connector, and source logs are in the same compartment.
-```
-
-If your logs live in multiple compartments, create broader log-read policies at the tenancy or parent compartment level.
-
 ## Cribl Collector
 
-After apply, configure Cribl to read:
+After apply, configure Cribl to collect from:
 
 ```text
-bucket = <bucket_name>
-prefix = cribl/
-compression = gzip
-format = json or ndjson
+Bucket: <bucket_name>
+Prefix: cribl/
+Compression: gzip
+Format: json or ndjson
 ```
-
-## References
-
-- OCI Resource Manager Terraform configuration requirements: https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Concepts/terraformconfigresourcemanager.htm
-- OCI Resource Manager stack creation: https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Tasks/create-stack.htm
-- OCI Resource Manager supported Terraform versions: https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Reference/terraformversions.htm
-- Cribl OCI guidance: https://cribl.io/blog/capturing-security-and-observability-data-from-oracle-cloud/

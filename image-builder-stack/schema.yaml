@@ -1,0 +1,53 @@
+schemaVersion: 1.1.0
+version: "20260805"
+title: "Cribl OCI Log Partitioner Image Builder"
+description: "Build and publish the OCI Function image into the user's OCI Container Registry using OCI DevOps."
+variableGroups:
+  - title: "Required"
+    variables:
+      - ${compartment_ocid}
+      - ${region}
+  - title: "GitHub Source"
+    variables:
+      - ${repository_url}
+      - ${repository_branch}
+      - ${create_github_connection}
+      - ${existing_github_connection_id}
+      - ${github_access_token_secret_id}
+  - title: "Image Target"
+    variables:
+      - ${ocir_repository_name}
+      - ${image_tag}
+      - ${create_ocir_repository}
+      - ${ocir_repository_is_public}
+      - ${ocir_repository_is_immutable}
+      - ${object_storage_namespace}
+  - title: "Build Pipeline"
+    variables:
+      - ${run_build}
+      - ${build_run_version}
+      - ${devops_project_name}
+      - ${build_pipeline_name}
+      - ${build_stage_name}
+      - ${deliver_stage_name}
+  - title: "Advanced"
+    variables:
+      - ${build_source_name}
+      - ${build_spec_file}
+      - ${build_stage_image}
+      - ${build_stage_timeout_in_seconds}
+      - ${notification_topic_name}
+      - ${create_iam_resources}
+      - ${dynamic_group_name}
+      - ${devops_policy_name}
+      - ${freeform_tags}
+outputs:
+  function_image:
+    type: copyableString
+    title: "Function Image"
+  function_image_digest:
+    type: copyableString
+    title: "Function Image Digest"
+  build_run_id:
+    type: copyableString
+    title: "Build Run"

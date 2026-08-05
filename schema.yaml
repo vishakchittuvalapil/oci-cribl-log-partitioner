@@ -1,0 +1,52 @@
+schemaVersion: 1.1.0
+version: "20260805"
+title: "OCI Logs to Cribl Runtime Stack"
+description: "Deploy OCI Logging to Object Storage with Cribl-friendly time and log_type partitioning."
+variableGroups:
+  - title: "Required"
+    variables:
+      - ${compartment_ocid}
+      - ${region}
+      - ${function_image}
+      - ${log_sources}
+  - title: "Object Storage"
+    variables:
+      - ${bucket_name}
+      - ${create_bucket}
+      - ${object_prefix}
+      - ${include_minute}
+      - ${object_storage_namespace}
+  - title: "Functions"
+    variables:
+      - ${create_functions_application}
+      - ${existing_functions_application_id}
+      - ${functions_subnet_ids}
+      - ${functions_application_name}
+      - ${functions_application_shape}
+      - ${function_name}
+      - ${function_image_digest}
+      - ${function_memory_in_mbs}
+      - ${function_timeout_in_seconds}
+  - title: "Service Connector Hub"
+    variables:
+      - ${service_connector_name}
+      - ${service_connector_description}
+      - ${connector_batch_size_in_num}
+      - ${connector_batch_time_in_sec}
+  - title: "IAM and Tags"
+    variables:
+      - ${create_iam_resources}
+      - ${dynamic_group_name}
+      - ${function_bucket_policy_name}
+      - ${service_connector_policy_name}
+      - ${freeform_tags}
+outputs:
+  cribl_collector_prefix:
+    type: copyableString
+    title: "Cribl Collector Prefix"
+  object_path_pattern:
+    type: copyableString
+    title: "Object Path Pattern"
+  bucket_name:
+    type: copyableString
+    title: "Bucket Name"

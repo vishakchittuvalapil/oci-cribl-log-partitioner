@@ -7,8 +7,8 @@ create_bucket  = true
 object_prefix  = "cribl"
 include_minute = true
 
-# Build and push the image to OCIR before running the stack.
-function_image = "<REGION_KEY>.ocir.io/<OBJECT_STORAGE_NAMESPACE>/cribl-oci-log-partitioner/function:0.0.1"
+# Use the function_image output from image-builder-stack.
+function_image = "ocir.<region>.oci.oraclecloud.com/<OBJECT_STORAGE_NAMESPACE>/cribl-oci-log-partitioner/function:0.0.1"
 
 # Reuse an existing Functions app by default.
 create_functions_application      = false

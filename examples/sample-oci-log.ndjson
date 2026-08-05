@@ -1,1 +1,0 @@
-{"datetime":"2026-08-05T09:18:00Z","logContent":{"type":"com.oraclecloud.vcn.flowlogs","source":"ocid1.vcn.oc1.iad.example","oracle":{"logid":"<VCN_FLOW_LOG_OCID>","ingestedtime":"2026-08-05T09:18:01Z"},"data":{"action":"ACCEPT","sourceAddress":"10.0.1.10","destinationAddress":"10.0.2.20"}}}
