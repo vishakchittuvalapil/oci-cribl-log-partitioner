@@ -25,9 +25,8 @@ variables:
     title: "Function Image Digest"
     description: "Optional image digest to pin the exact Function image."
   log_sources:
-    required: true
     title: "Log Sources"
-    description: "Required. Paste a Terraform list of OCI Logging source OCIDs and Cribl log_type folder names."
+    description: "Paste a Terraform list of OCI Logging source OCIDs and Cribl log_type folder names. Required only when Create Service Connector is enabled."
   bucket_name:
     title: "Bucket Name"
     description: "Object Storage bucket name for Cribl-readable objects."
@@ -58,6 +57,9 @@ variables:
   functions_application_shape:
     title: "Functions Application Shape"
     description: "Shape for a new Functions application."
+  create_service_connector:
+    title: "Create Service Connector"
+    description: "Create the Service Connector Hub connector. Disable for the first apply if you will add log sources later."
   function_name:
     title: "Function Name"
     description: "OCI Function display name."
@@ -101,7 +103,6 @@ variableGroups:
       - ${compartment_ocid}
       - ${region}
       - ${function_image}
-      - ${log_sources}
   - title: "Object Storage"
     variables:
       - ${bucket_name}
@@ -122,6 +123,8 @@ variableGroups:
       - ${function_timeout_in_seconds}
   - title: "Service Connector Hub"
     variables:
+      - ${create_service_connector}
+      - ${log_sources}
       - ${service_connector_name}
       - ${service_connector_description}
       - ${connector_batch_size_in_num}

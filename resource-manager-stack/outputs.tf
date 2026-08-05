@@ -25,7 +25,7 @@ output "functions_application_id" {
 
 output "service_connector_id" {
   description = "Service Connector Hub connector OCID."
-  value       = oci_sch_service_connector.this.id
+  value       = try(oci_sch_service_connector.this[0].id, "")
 }
 
 output "log_type_map" {

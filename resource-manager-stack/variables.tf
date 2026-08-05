@@ -52,16 +52,17 @@ variable "log_sources" {
     log_id         = string
     log_type       = string
   }))
+  default = []
 
   validation {
-    condition = length(var.log_sources) > 0 && alltrue([
+    condition = alltrue([
       for source in var.log_sources :
       trimspace(source.compartment_id) != "" &&
       trimspace(source.log_group_id) != "" &&
       trimspace(source.log_id) != "" &&
       trimspace(source.log_type) != ""
     ])
-    error_message = "Provide at least one log source, and include compartment_id, log_group_id, log_id, and log_type for each source."
+    error_message = "Each log source must include compartment_id, log_group_id, log_id, and log_type."
   }
 }
 
@@ -122,6 +123,12 @@ variable "functions_application_shape" {
   description = "Functions application shape."
   type        = string
   default     = "GENERIC_X86"
+}
+
+variable "create_service_connector" {
+  description = "Create the Service Connector Hub connector. Set false for an initial deployment before log sources are known."
+  type        = bool
+  default     = true
 }
 
 variable "service_connector_name" {

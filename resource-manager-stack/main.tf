@@ -89,6 +89,8 @@ resource "oci_functions_function" "this" {
 }
 
 resource "oci_sch_service_connector" "this" {
+  count = var.create_service_connector ? 1 : 0
+
   compartment_id = var.compartment_ocid
   display_name   = var.service_connector_name
   description    = var.service_connector_description
@@ -118,4 +120,11 @@ resource "oci_sch_service_connector" "this" {
   depends_on = [
     oci_identity_policy.service_connector
   ]
+
+  lifecycle {
+    precondition {
+      condition     = length(var.log_sources) > 0
+      error_message = "Set create_service_connector=false for an initial deployment without log sources, or provide at least one log source before creating the Service Connector."
+    }
+  }
 }

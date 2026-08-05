@@ -20,7 +20,7 @@ Use this flow:
 1. Build and push the Function image from OCI Cloud Shell
 2. Click Deploy to Oracle Cloud
 3. Paste the image URI into function_image
-4. Enter log_sources
+4. Either enter log_sources or disable create_service_connector for a first apply
 5. Run Plan and Apply
 ```
 
@@ -126,7 +126,7 @@ The stack creates:
 ```text
 Object Storage bucket
 OCI Function
-Service Connector Hub connector
+Optional Service Connector Hub connector
 Optional Functions application
 IAM policies for log read, Function invoke, and bucket write
 ```
@@ -137,8 +137,8 @@ You provide:
 
 ```text
 function_image
-log_sources
 existing_functions_application_id
+log_sources, if creating the Service Connector now
 ```
 
 If you want the stack to create a new Functions application, set:
@@ -148,9 +148,29 @@ create_functions_application = true
 functions_subnet_ids = ["<SUBNET_OCID>"]
 ```
 
+## Deploy Without Log Sources First
+
+OCI requires at least one Logging source when a Service Connector Hub connector uses a Logging source.
+
+If you want to create the bucket, Function, and IAM first, set:
+
+```hcl
+create_service_connector = false
+```
+
+Leave **Log Sources** empty and apply the stack.
+
+Later, edit the same Resource Manager stack, set:
+
+```hcl
+create_service_connector = true
+```
+
+Then paste `log_sources` and run **Plan** and **Apply** again. The second apply creates the Service Connector and starts sending logs to the Function.
+
 ## Log Sources
 
-`log_sources` is required. Paste a Terraform list into the Resource Manager **Log Sources** field.
+`log_sources` is required only when `create_service_connector = true`. Paste a Terraform list into the Resource Manager **Log Sources** field.
 
 Each entry maps one OCI Logging source to the folder name Cribl will see.
 

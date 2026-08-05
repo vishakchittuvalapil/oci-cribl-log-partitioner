@@ -20,6 +20,7 @@ module "cribl_oci_log_partitioner" {
   functions_application_name        = var.functions_application_name
   functions_subnet_ids              = var.functions_subnet_ids
   functions_application_shape       = var.functions_application_shape
+  create_service_connector          = var.create_service_connector
   service_connector_name            = var.service_connector_name
   service_connector_description     = var.service_connector_description
   connector_batch_size_in_num       = var.connector_batch_size_in_num

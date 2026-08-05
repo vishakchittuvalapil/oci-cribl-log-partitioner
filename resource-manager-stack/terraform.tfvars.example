@@ -17,6 +17,9 @@ existing_functions_application_id = "<FUNCTIONS_APPLICATION_OCID>"
 # If creating a new Functions app, set create_functions_application=true and provide subnets.
 functions_subnet_ids = []
 
+# Set false for an initial apply before log sources are known.
+create_service_connector = true
+
 log_sources = [
   {
     compartment_id = "<COMPARTMENT_OCID>"
