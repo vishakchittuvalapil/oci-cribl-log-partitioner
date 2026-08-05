@@ -1,0 +1,5 @@
+Allow any-user to read log-content in compartment <COMPARTMENT_NAME> where all {request.principal.type='serviceconnector'}
+Allow any-user to read log-groups in compartment <COMPARTMENT_NAME> where all {request.principal.type='serviceconnector'}
+Allow any-user to use fn-function in compartment <COMPARTMENT_NAME> where all {request.principal.type='serviceconnector'}
+Allow any-user to use fn-invocation in compartment <COMPARTMENT_NAME> where all {request.principal.type='serviceconnector'}
+Allow dynamic-group <FUNCTION_DYNAMIC_GROUP_NAME> to manage objects in compartment <COMPARTMENT_NAME> where target.bucket.name='CriblOutput'

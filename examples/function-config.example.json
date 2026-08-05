@@ -1,0 +1,7 @@
+{
+  "BUCKET_NAME": "CriblOutput",
+  "OBJECT_PREFIX": "cribl",
+  "INCLUDE_MINUTE": "true",
+  "FUNCTION_MODE": "target_writer",
+  "LOG_TYPE_MAP": "{\"<VCN_FLOW_LOG_OCID>\":\"oci-vcn-flow\",\"<OBJECT_STORAGE_LOG_OCID>\":\"oci-object-storage\"}"
+}

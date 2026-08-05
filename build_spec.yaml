@@ -1,0 +1,22 @@
+version: 0.1
+component: build
+timeoutInSeconds: 1800
+shell: bash
+failImmediatelyOnError: true
+
+env:
+  variables:
+    IMAGE_URI: "REGION_KEY.ocir.io/NAMESPACE/cribl-oci-log-partitioner/function:0.0.1"
+
+steps:
+  - type: Command
+    name: Build OCI Functions image
+    timeoutInSeconds: 1200
+    command: |
+      cd "${OCI_WORKSPACE_DIR}/Source"
+      docker build -t "${IMAGE_URI}" .
+
+outputArtifacts:
+  - name: cribl-oci-log-partitioner-image
+    type: DOCKER_IMAGE
+    location: REGION_KEY.ocir.io/NAMESPACE/cribl-oci-log-partitioner/function:0.0.1

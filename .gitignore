@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.DS_Store
+.work/
+deployment-outputs.json
+sample-oci-log.json.gz

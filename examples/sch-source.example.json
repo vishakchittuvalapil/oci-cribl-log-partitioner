@@ -1,0 +1,15 @@
+{
+  "kind": "logging",
+  "logSources": [
+    {
+      "compartmentId": "<COMPARTMENT_OCID>",
+      "logGroupId": "<LOG_GROUP_OCID>",
+      "logId": "<VCN_FLOW_LOG_OCID>"
+    },
+    {
+      "compartmentId": "<COMPARTMENT_OCID>",
+      "logGroupId": "<LOG_GROUP_OCID>",
+      "logId": "<OBJECT_STORAGE_LOG_OCID>"
+    }
+  ]
+}
