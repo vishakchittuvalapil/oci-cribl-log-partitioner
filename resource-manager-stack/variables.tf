@@ -52,6 +52,17 @@ variable "log_sources" {
     log_id         = string
     log_type       = string
   }))
+
+  validation {
+    condition = length(var.log_sources) > 0 && alltrue([
+      for source in var.log_sources :
+      trimspace(source.compartment_id) != "" &&
+      trimspace(source.log_group_id) != "" &&
+      trimspace(source.log_id) != "" &&
+      trimspace(source.log_type) != ""
+    ])
+    error_message = "Provide at least one log source, and include compartment_id, log_group_id, log_id, and log_type for each source."
+  }
 }
 
 variable "function_image" {

@@ -25,8 +25,9 @@ variables:
     title: "Function Image Digest"
     description: "Optional image digest to pin the exact Function image."
   log_sources:
+    required: true
     title: "Log Sources"
-    description: "OCI Logging source OCIDs and the Cribl log_type folder names to use."
+    description: "Required. Paste a Terraform list of OCI Logging source OCIDs and Cribl log_type folder names."
   bucket_name:
     title: "Bucket Name"
     description: "Object Storage bucket name for Cribl-readable objects."

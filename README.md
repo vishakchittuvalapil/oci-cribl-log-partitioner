@@ -150,7 +150,9 @@ functions_subnet_ids = ["<SUBNET_OCID>"]
 
 ## Log Sources
 
-`log_sources` maps each OCI Logging source to the folder name Cribl will see.
+`log_sources` is required. Paste a Terraform list into the Resource Manager **Log Sources** field.
+
+Each entry maps one OCI Logging source to the folder name Cribl will see.
 
 Example:
 
