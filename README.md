@@ -67,25 +67,38 @@ If the repository already exists, continue.
 Profile -> My profile -> Tokens and keys -> Auth tokens -> Generate token
 ```
 
-6. Log in to OCIR from Cloud Shell:
+6. Set your OCIR username and log in from Cloud Shell.
+
+For most identity-domain tenancies, use:
 
 ```bash
-podman login "${REGION_KEY}.ocir.io"
+export OCIR_USERNAME="${NAMESPACE}/Default/<OCI_USERNAME>"
 ```
 
-Username format:
+For older IDCS/federated tenancies, use:
 
-```text
-<namespace>/<oci-username>
+```bash
+export OCIR_USERNAME="${NAMESPACE}/oracleidentitycloudservice/<OCI_USERNAME>"
 ```
 
-If your tenancy uses identity domains:
+For local OCI users without an identity domain, use:
 
-```text
-<namespace>/<identity-domain>/<oci-username>
+```bash
+export OCIR_USERNAME="${NAMESPACE}/<OCI_USERNAME>"
 ```
 
-Use the OCI Auth Token as the password.
+Replace `<OCI_USERNAME>` with the username shown in your OCI profile, usually an email address.
+
+Then log in:
+
+```bash
+podman logout "${REGION_KEY}.ocir.io" || true
+podman login "${REGION_KEY}.ocir.io" --username "${OCIR_USERNAME}"
+```
+
+If `podman logout` says `not logged into`, that is safe to ignore. Use the OCI Auth Token as the password when `podman login` prompts for it.
+
+Oracle documents the required username format as `<namespace>/<username>` or `<namespace>/<domain-name>/<username>` for federated/domain users: [Log in to OCIR](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionslogintoocir.htm).
 
 7. Build and push the image:
 
