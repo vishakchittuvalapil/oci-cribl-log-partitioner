@@ -2,7 +2,7 @@
 
 [![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/main.zip)
 
-This repository is focused on a **Resource Manager-style deployment** for sending OCI logs to Cribl through Object Storage.
+This repository deploys an OCI log pipeline for Cribl through OCI Resource Manager.
 
 The Function writes objects using Cribl-friendly paths:
 
@@ -14,7 +14,101 @@ This follows [Cribl's OCI guidance](https://cribl.io/blog/capturing-security-and
 
 ## Deployment Flow
 
-Click **Deploy to Oracle Cloud** and create one Resource Manager stack.
+Use this flow:
+
+```text
+1. Build and push the Function image from OCI Cloud Shell
+2. Click Deploy to Oracle Cloud
+3. Paste the image URI into function_image
+4. Enter log_sources
+5. Run Plan and Apply
+```
+
+There is no prebuilt image dependency and no OCI DevOps, GitHub connection, or Vault secret requirement.
+
+## Step 1: Build Image From Cloud Shell
+
+1. Open **OCI Cloud Shell**.
+
+2. Clone the repo:
+
+```bash
+git clone https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner.git
+cd oci-cribl-log-partitioner
+```
+
+3. Set image variables:
+
+```bash
+export REGION_KEY=iad
+export NAMESPACE="$(oci os ns get --query data --raw-output)"
+export REPO_NAME=cribl-oci-log-partitioner/function
+export TAG=0.0.1
+export IMAGE="${REGION_KEY}.ocir.io/${NAMESPACE}/${REPO_NAME}:${TAG}"
+echo "${IMAGE}"
+```
+
+Use the region key for your OCI region. For example, `iad` is `us-ashburn-1`.
+
+4. Create the OCIR repository:
+
+```bash
+oci artifacts container repository create \
+  --compartment-id "<COMPARTMENT_OCID>" \
+  --display-name "${REPO_NAME}" \
+  --is-public false
+```
+
+If the repository already exists, continue.
+
+5. Generate an OCI Auth Token:
+
+```text
+Profile -> My profile -> Tokens and keys -> Auth tokens -> Generate token
+```
+
+6. Log in to OCIR from Cloud Shell:
+
+```bash
+podman login "${REGION_KEY}.ocir.io"
+```
+
+Username format:
+
+```text
+<namespace>/<oci-username>
+```
+
+If your tenancy uses identity domains:
+
+```text
+<namespace>/<identity-domain>/<oci-username>
+```
+
+Use the OCI Auth Token as the password.
+
+7. Build and push the image:
+
+```bash
+podman build --platform linux/amd64 -t "${IMAGE}" .
+podman push "${IMAGE}"
+```
+
+8. Copy the image URI printed in Step 3:
+
+```text
+<REGION_KEY>.ocir.io/<NAMESPACE>/cribl-oci-log-partitioner/function:0.0.1
+```
+
+You will paste it into Resource Manager as:
+
+```text
+function_image
+```
+
+## Step 2: Deploy With Resource Manager
+
+Click **Deploy to Oracle Cloud** at the top of this README.
 
 The stack creates:
 
@@ -26,37 +120,12 @@ Optional Functions application
 IAM policies for log read, Function invoke, and bucket write
 ```
 
-No OCI DevOps stack, GitHub connection, Vault secret, Cloud Shell, or local Docker build is required for the default deployment.
-
-## Prebuilt Image
-
-The stack uses this prebuilt Function image by default:
-
-```text
-iad.ocir.io/id3kvohtwgjy/cribl-oci-log-partitioner/function:0.0.1
-```
-
-Pinned digest:
-
-```text
-sha256:f6e957b424be5948324d39c6559f9597419c977e887e79d2b24b8e2fc0779fc1
-```
-
-This default is intended for `us-ashburn-1`. If you deploy in another region or want to own the image in your tenancy, override `function_image` and optionally `function_image_digest`.
-
-Maintainer callout:
-
-```text
-For this default image to work for users outside your tenancy, the OCIR repository that hosts it must be public or otherwise readable by those users.
-```
-
-## Required Inputs
-
 Resource Manager prepopulates common OCI values such as tenancy, compartment, and region.
 
 You provide:
 
 ```text
+function_image
 log_sources
 existing_functions_application_id
 ```
@@ -111,84 +180,10 @@ Format: json or ndjson
 Compression: gzip
 ```
 
-## Manual Image Build From Cloud Shell
-
-This is optional. Use it only if you want to publish your own Function image instead of the default prebuilt image.
-
-1. Open **OCI Cloud Shell**.
-
-2. Clone the repo:
-
-```bash
-git clone https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner.git
-cd oci-cribl-log-partitioner
-```
-
-3. Set image variables:
-
-```bash
-export REGION_KEY=iad
-export NAMESPACE="$(oci os ns get --query data --raw-output)"
-export REPO_NAME=cribl-oci-log-partitioner/function
-export TAG=0.0.1
-export IMAGE="${REGION_KEY}.ocir.io/${NAMESPACE}/${REPO_NAME}:${TAG}"
-echo "${IMAGE}"
-```
-
-4. Create the OCIR repository:
-
-```bash
-oci artifacts container repository create \
-  --compartment-id "<COMPARTMENT_OCID>" \
-  --display-name "${REPO_NAME}" \
-  --is-public false
-```
-
-If the repository already exists, continue.
-
-5. Generate an OCI Auth Token:
-
-```text
-Profile -> My profile -> Tokens and keys -> Auth tokens -> Generate token
-```
-
-6. Log in to OCIR from Cloud Shell:
-
-```bash
-podman login "${REGION_KEY}.ocir.io"
-```
-
-Username format:
-
-```text
-<namespace>/<oci-username>
-```
-
-If your tenancy uses identity domains:
-
-```text
-<namespace>/<identity-domain>/<oci-username>
-```
-
-Use the OCI Auth Token as the password.
-
-7. Build and push the image:
-
-```bash
-podman build --platform linux/amd64 -t "${IMAGE}" .
-podman push "${IMAGE}"
-```
-
-8. Copy the image URI printed in Step 3 and override the Resource Manager variable:
-
-```text
-function_image = <your image URI>
-```
-
 ## Repository Contents
 
 ```text
-README.md                 Resource Manager deployment guide
+README.md                 Deployment guide
 Dockerfile                Function image build definition
 func.py                   Function code that writes Cribl-friendly paths
 requirements.txt          Function Python dependencies

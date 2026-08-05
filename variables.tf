@@ -55,15 +55,14 @@ variable "log_sources" {
 }
 
 variable "function_image" {
-  description = "OCIR image URI for the prebuilt Function container. The default image is published for us-ashburn-1; override it if you build your own image."
+  description = "OCIR image URI for the Function container. Build and push the image first, then paste the image URI here."
   type        = string
-  default     = "iad.ocir.io/id3kvohtwgjy/cribl-oci-log-partitioner/function:0.0.1"
 }
 
 variable "function_image_digest" {
   description = "Optional image digest to pin the exact Function image."
   type        = string
-  default     = "sha256:f6e957b424be5948324d39c6559f9597419c977e887e79d2b24b8e2fc0779fc1"
+  default     = ""
 }
 
 variable "function_name" {
