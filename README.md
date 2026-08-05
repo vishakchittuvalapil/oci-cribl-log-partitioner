@@ -83,6 +83,7 @@ build_spec.yaml                 OCI DevOps build spec template
 examples/                       Placeholder OCI config examples
 docs/                           Step-by-step setup guides
 scripts/                        Helper scripts with placeholder values
+resource-manager-stack/         Terraform stack for OCI Resource Manager
 ```
 
 ## Step-by-Step Setup
@@ -227,6 +228,40 @@ See:
 
 ```text
 docs/cribl-collector-setup.md
+```
+
+## Deploy With OCI Resource Manager
+
+You can also deploy the OCI resources as a Resource Manager stack.
+
+Use this working directory:
+
+```text
+resource-manager-stack
+```
+
+The stack creates:
+
+```text
+Object Storage bucket
+OCI Function
+Service Connector Hub connector
+Optional Functions application
+Optional IAM dynamic group and policies
+```
+
+Callout:
+
+```text
+Build and push the Function image to OCIR before applying the stack.
+```
+
+Resource Manager runs Terraform and provisions OCI resources, but it does not build the Docker image from this repo. Pass the prebuilt image URI using the `function_image` variable.
+
+See:
+
+```text
+resource-manager-stack/README.md
 ```
 
 ## Cribl Alignment

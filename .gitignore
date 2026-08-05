@@ -4,3 +4,7 @@ __pycache__/
 .work/
 deployment-outputs.json
 sample-oci-log.json.gz
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
