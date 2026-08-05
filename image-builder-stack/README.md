@@ -1,5 +1,7 @@
 # Image Builder Resource Manager Stack
 
+[![Deploy Image Builder to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/deploy-image-builder.zip)
+
 This stack builds the OCI Function image in the user's tenancy using OCI DevOps.
 
 It creates:

@@ -32,7 +32,13 @@ No local Docker, Cloud Shell, OCI CLI, or manual script execution is required fo
 
 ## Step 1: Build The Function Image
 
-Create a Resource Manager stack from GitHub:
+[![Deploy Image Builder to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/deploy-image-builder.zip)
+
+Use the button above to create the image-builder stack in OCI Resource Manager.
+
+It uses a dedicated deploy branch where the `image-builder-stack` Terraform files are packaged at the zip root, which is required by the OCI deploy button.
+
+You can also create the stack from GitHub:
 
 ```text
 Repository URL: https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner
