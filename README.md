@@ -1,8 +1,6 @@
-# OCI Logs to Cribl Resource Manager Deployment
+# OCI Logs to Cribl with OCI Functions
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner/archive/refs/heads/main.zip)
-
-This repository deploys an OCI log pipeline for Cribl through OCI Resource Manager.
+Deploy an OCI Function from Cloud Shell with the Fn CLI, then create the Service Connector manually when you know which logs to send.
 
 The Function writes objects using Cribl-friendly paths:
 
@@ -12,224 +10,267 @@ cribl/YYYY/MM/DD/HH/MM/<log_type>/oci-log-<timestamp>-<uuid>.json.gz
 
 This follows [Cribl's OCI guidance](https://cribl.io/blog/capturing-security-and-observability-data-from-oracle-cloud/) to include year, month, day, hour, and optionally minute in the bucket path for time-based filtering.
 
-## Deployment Flow
-
-Use this flow:
+## What This Deploys
 
 ```text
-1. Build and push the Function image from OCI Cloud Shell
-2. Click Deploy to Oracle Cloud
-3. Paste the image URI into function_image
-4. Either enter log_sources or disable create_service_connector for a first apply
-5. Run Plan and Apply
+OCI Function
+Function container image in OCIR
+Object Storage bucket for Cribl to read
 ```
 
-There is no prebuilt image dependency and no OCI DevOps, GitHub connection, or Vault secret requirement.
+You create the Service Connector manually later:
 
-## Step 1: Build Image From Cloud Shell
+```text
+Source: Logging
+Target: Functions
+Function: cribl-oci-log-partitioner
+```
 
-1. Open **OCI Cloud Shell**.
+Do not use Object Storage as the Service Connector target for this version. The Function is the target because it writes the final Cribl partitioned object path into Object Storage.
 
-2. Clone the repo:
+## Step 1: Open Cloud Shell
+
+Clone the repo:
 
 ```bash
 git clone https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner.git
 cd oci-cribl-log-partitioner
 ```
 
-3. Set image variables:
+## Step 2: Set Variables
+
+Update these values for your tenancy:
 
 ```bash
-export REGION_KEY=iad
+export REGION_IDENTIFIER="us-ashburn-1"
+export REGION_KEY="iad"
+export COMPARTMENT_OCID="<COMPARTMENT_OCID>"
+export SUBNET_OCID="<SUBNET_OCID>"
+export APP_NAME="cribl-log-partitioner-app"
+export FUNCTION_NAME="cribl-oci-log-partitioner"
+export BUCKET_NAME="CriblOutput"
 export NAMESPACE="$(oci os ns get --query data --raw-output)"
-export REPO_NAME=cribl-oci-log-partitioner/function
-export TAG=0.0.1
-export IMAGE="${REGION_KEY}.ocir.io/${NAMESPACE}/${REPO_NAME}:${TAG}"
-echo "${IMAGE}"
 ```
 
-Use the region key for your OCI region. For example, `iad` is `us-ashburn-1`.
+Use the region values for your OCI region. For example, Ashburn is:
 
-4. Create the OCIR repository:
-
-```bash
-oci artifacts container repository create \
-  --compartment-id "<COMPARTMENT_OCID>" \
-  --display-name "${REPO_NAME}" \
-  --is-public false
+```text
+REGION_IDENTIFIER=us-ashburn-1
+REGION_KEY=iad
 ```
 
-If the repository already exists, continue.
+## Step 3: Log In To OCIR
 
-5. Generate an OCI Auth Token:
+Generate an OCI Auth Token:
 
 ```text
 Profile -> My profile -> Tokens and keys -> Auth tokens -> Generate token
 ```
 
-6. Set your OCIR username and log in from Cloud Shell:
+Set your OCIR username:
 
 ```bash
 export OCIR_USERNAME="${NAMESPACE}/<Domain_name>/<OCI_USERNAME>"
 ```
 
-Replace `<Domain_name>` with your OCI identity domain, such as `Default`, and replace `<OCI_USERNAME>` with the username shown in your OCI profile, usually an email address.
+Example:
 
-Then log in:
-
-```bash
-podman logout "${REGION_KEY}.ocir.io" || true
-podman login "${REGION_KEY}.ocir.io" --username "${OCIR_USERNAME}"
+```text
+id3kvohtwgjy/Default/vishak.chittuvalapil@oracle.com
 ```
 
-If `podman logout` says `not logged into`, that is safe to ignore. Use the OCI Auth Token as the password when `podman login` prompts for it.
+Log in:
+
+```bash
+docker logout "${REGION_KEY}.ocir.io" || true
+docker login "${REGION_KEY}.ocir.io" --username "${OCIR_USERNAME}"
+```
+
+Use the OCI Auth Token as the password.
 
 Oracle documents the required username format as `<namespace>/<username>` or `<namespace>/<domain-name>/<username>` for federated/domain users: [Log in to OCIR](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionslogintoocir.htm).
 
-7. Build and push the image:
+## Step 4: Configure Fn
+
+Cloud Shell normally already has Fn contexts. Select your region context and point it to your compartment and OCIR repo prefix:
 
 ```bash
-podman build --layers=false --platform linux/amd64 -t "${IMAGE}" .
-podman push "${IMAGE}"
-echo "${IMAGE}"
+fn list context
+fn use context "${REGION_IDENTIFIER}"
+fn update context oracle.compartment-id "${COMPARTMENT_OCID}"
+fn update context oracle.image-compartment-id "${COMPARTMENT_OCID}"
+fn update context registry "${REGION_KEY}.ocir.io/${NAMESPACE}/cribl-oci-log-partitioner"
 ```
 
-If Cloud Shell reports `no space left on device`, clean unused local Podman build data and retry:
+Oracle's Cloud Shell quickstart uses the same Fn context pattern: [Functions QuickStart on Cloud Shell](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsquickstartcloudshell.htm).
+
+## Step 5: Create The Bucket
+
+Create the Object Storage bucket that Cribl will read:
 
 ```bash
-podman system prune --all --force --volumes
-podman build --layers=false --no-cache --platform linux/amd64 -t "${IMAGE}" .
-podman push "${IMAGE}"
-echo "${IMAGE}"
+oci os bucket create \
+  --compartment-id "${COMPARTMENT_OCID}" \
+  --name "${BUCKET_NAME}" \
+  --public-access-type NoPublicAccess \
+  --storage-tier Standard
 ```
 
-This cleanup affects only unused local Cloud Shell container images, containers, volumes, and build cache. It does not delete OCI resources or images already pushed to OCIR.
+If the bucket already exists, continue.
 
-8. Copy the image URI printed after the push:
+## Step 6: Create Or Reuse A Functions App
+
+Create a Functions application:
+
+```bash
+fn create app "${APP_NAME}" --subnet-id "${SUBNET_OCID}"
+```
+
+If you already have an app, use that app name instead and skip this command.
+
+Check apps:
+
+```bash
+fn list apps
+```
+
+## Step 7: Deploy The Function
+
+Deploy from the repo directory:
+
+```bash
+fn -v deploy --app "${APP_NAME}"
+```
+
+This command builds the container image, pushes it to OCIR, and creates or updates the OCI Function. Oracle documents that `fn -v deploy --app <app-name>` performs build, push, and deploy in one step: [Creating and Deploying Functions](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsuploading.htm).
+
+If Cloud Shell reports `no space left on device`, clean unused local container build data and retry:
+
+```bash
+docker system prune --all --force --volumes
+fn -v deploy --app "${APP_NAME}"
+```
+
+## Step 8: Configure The Function
+
+Set the runtime config:
+
+```bash
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" BUCKET_NAME "${BUCKET_NAME}"
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" FUNCTION_MODE "target_writer"
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" OBJECT_PREFIX "cribl"
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" INCLUDE_MINUTE "true"
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP "{}"
+```
+
+OCI Functions exposes these config values as environment variables to the Function. See [OCI custom Function configuration parameters](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionspassingconfigparams.htm).
+
+Optional: after you choose log sources, map specific log OCIDs to Cribl folder names:
+
+```bash
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP '{"<VCN_FLOW_LOG_OCID>":"oci-vcn-flow","<OBJECT_STORAGE_LOG_OCID>":"oci-object-storage"}'
+```
+
+If `LOG_TYPE_MAP` is `{}`, the Function still tries to detect common OCI log types automatically. Unknown logs go to:
 
 ```text
-<REGION_KEY>.ocir.io/<NAMESPACE>/cribl-oci-log-partitioner/function:0.0.1
+cribl/YYYY/MM/DD/HH/MM/oci-generic/
 ```
 
-You will paste it into Resource Manager as:
+## Step 9: Create IAM Access
+
+The Function needs permission to write to the bucket. Create a dynamic group for functions in your compartment:
 
 ```text
-function_image
+ALL {resource.type = 'fnfunc', resource.compartment.id = '<COMPARTMENT_OCID>'}
 ```
 
-## Step 2: Deploy With Resource Manager
-
-Click **Deploy to Oracle Cloud** at the top of this README.
-
-The stack creates:
+Add this policy in the bucket compartment:
 
 ```text
-Object Storage bucket
-OCI Function
-Optional Service Connector Hub connector
-Optional Functions application
-IAM policies for log read, Function invoke, and bucket write
+Allow dynamic-group <DYNAMIC_GROUP_NAME> to manage objects in compartment id <COMPARTMENT_OCID> where target.bucket.name='<BUCKET_NAME>'
 ```
 
-Resource Manager prepopulates common OCI values such as tenancy, compartment, and region.
-
-You provide:
+Service Connector Hub also needs permission to read logs and invoke the Function. Add these policies in the relevant compartments:
 
 ```text
-function_image
-existing_functions_application_id
-log_sources, if creating the Service Connector now
+Allow any-user to read log-content in compartment id <LOG_COMPARTMENT_OCID> where all {request.principal.type='serviceconnector'}
+Allow any-user to read log-groups in compartment id <LOG_COMPARTMENT_OCID> where all {request.principal.type='serviceconnector'}
+Allow any-user to use fn-function in compartment id <FUNCTION_COMPARTMENT_OCID> where all {request.principal.type='serviceconnector'}
+Allow any-user to use fn-invocation in compartment id <FUNCTION_COMPARTMENT_OCID> where all {request.principal.type='serviceconnector'}
 ```
 
-If you want the stack to create a new Functions application, set:
+If the Service Connector wizard offers to create required policies for you, you can use that option.
+
+## Step 10: Create Service Connector Manually
+
+Open OCI Console:
 
 ```text
-create_functions_application = true
-functions_subnet_ids = ["<SUBNET_OCID>"]
+Analytics & AI -> Messaging -> Connector Hub -> Create connector
 ```
 
-## Deploy Without Log Sources First
-
-OCI requires at least one Logging source when a Service Connector Hub connector uses a Logging source.
-
-If you want to create the bucket, Function, and IAM first, set:
-
-```hcl
-create_service_connector = false
-```
-
-Leave **Log Sources** empty and apply the stack.
-
-Later, edit the same Resource Manager stack, set:
-
-```hcl
-create_service_connector = true
-```
-
-Then paste `log_sources` and run **Plan** and **Apply** again. The second apply creates the Service Connector and starts sending logs to the Function.
-
-## Log Sources
-
-`log_sources` is required only when `create_service_connector = true`. Paste a Terraform list into the Resource Manager **Log Sources** field.
-
-Each entry maps one OCI Logging source to the folder name Cribl will see.
-
-Example:
-
-```hcl
-log_sources = [
-  {
-    compartment_id = "<COMPARTMENT_OCID>"
-    log_group_id   = "<LOG_GROUP_OCID>"
-    log_id         = "<VCN_FLOW_LOG_OCID>"
-    log_type       = "oci-vcn-flow"
-  },
-  {
-    compartment_id = "<COMPARTMENT_OCID>"
-    log_group_id   = "<LOG_GROUP_OCID>"
-    log_id         = "<OBJECT_STORAGE_LOG_OCID>"
-    log_type       = "oci-object-storage"
-  }
-]
-```
-
-The `log_type` value becomes part of the Object Storage path:
+Use these settings:
 
 ```text
-cribl/YYYY/MM/DD/HH/MM/oci-vcn-flow/
-cribl/YYYY/MM/DD/HH/MM/oci-object-storage/
+Source: Logging
+Target: Functions
+Task: None
 ```
 
-## Cribl Collector Settings
+For the source:
+
+```text
+Compartment: compartment containing the log
+Log group: selected log group
+Logs: selected logs
+```
+
+For the target:
+
+```text
+Function compartment: compartment containing the Function
+Function application: cribl-log-partitioner-app
+Function: cribl-oci-log-partitioner
+Batch size: 100 messages
+Batch time: 60 seconds
+```
+
+Oracle's Connector Hub docs confirm that a Logging source can target Functions, and that Functions targets receive log data as JSON batches: [Creating a Connector with a Logging Source](https://docs.public.content.oci.oraclecloud.com/en-us/iaas/Content/connector-hub/create-service-connector-logging-source.htm).
+
+## Step 11: Configure Cribl
 
 Configure Cribl to read from OCI Object Storage using the S3-compatible collector/source.
 
 Recommended values:
 
 ```text
-Bucket: <bucket_name>
+Bucket: CriblOutput
 Prefix: cribl/
 Format: json or ndjson
 Compression: gzip
 ```
 
+Expected object path:
+
+```text
+cribl/2026/08/05/15/17/oci-vcn-flow/oci-log-20260805T151700Z-<uuid>.json.gz
+```
+
 ## Repository Contents
 
 ```text
-README.md                 Deployment guide
-Dockerfile                Function image build definition
-func.py                   Function code that writes Cribl-friendly paths
-requirements.txt          Function Python dependencies
-resource-manager-stack/   Resource Manager stack that deploys the OCI logging pipeline
-main.tf                   Root wrapper for the Deploy to Oracle Cloud button
-variables.tf              Root runtime stack variables
-versions.tf               Root Terraform/provider constraints
-outputs.tf                Root runtime stack outputs
-schema.yaml               Resource Manager UI metadata
+README.md         Manual Cloud Shell and Connector Hub guide
+func.yaml         Fn CLI function metadata
+Dockerfile        Function image build definition
+func.py           Function code that writes Cribl-friendly paths
+requirements.txt  Function Python dependencies
 ```
 
 ## References
 
 - [Cribl OCI guidance](https://cribl.io/blog/capturing-security-and-observability-data-from-oracle-cloud/)
-- [OCI Resource Manager Terraform configuration requirements](https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Concepts/terraformconfigresourcemanager.htm)
-- [OCI Resource Manager schema documents](https://docs.oracle.com/en-us/iaas/Content/ResourceManager/Concepts/terraformconfigresourcemanager_topic-schema.htm)
+- [OCI Functions Cloud Shell quickstart](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsquickstartcloudshell.htm)
+- [OCI Functions custom Dockerfiles](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsusingcustomdockerfiles.htm)
+- [OCI Function configuration parameters](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionspassingconfigparams.htm)
+- [OCI Connector Hub Logging source](https://docs.public.content.oci.oraclecloud.com/en-us/iaas/Content/connector-hub/create-service-connector-logging-source.htm)
