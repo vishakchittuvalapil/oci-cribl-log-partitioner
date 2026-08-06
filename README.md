@@ -33,7 +33,7 @@ Resource order:
 
 ```text
 1. Configure the Fn CLI context
-2. Create or reuse a Functions application
+2. Create a dedicated Functions application for this Function
 3. Deploy the Function into that application
 4. Create the Service Connector manually after selecting logs
 ```
@@ -55,7 +55,7 @@ Update these values for your tenancy:
 export REGION_IDENTIFIER="us-ashburn-1"
 export REGION_KEY="iad"
 export COMPARTMENT_OCID="<COMPARTMENT_OCID>"
-export SUBNET_OCID="<SUBNET_OCID>"
+export SUBNET_OCID="<PRIVATE_OR_PUBLIC_SUBNET_OCID>"
 export APP_NAME="cribl-log-partitioner-app"
 export FUNCTION_NAME="cribl-oci-log-partitioner"
 export BUCKET_NAME="CriblOutput"
@@ -68,6 +68,8 @@ Use the region values for your OCI region. For example, Ashburn is:
 REGION_IDENTIFIER=us-ashburn-1
 REGION_KEY=iad
 ```
+
+The subnet can be private. For a private subnet, make sure the VCN has a Service Gateway route to **All <region> Services in Oracle Services Network** so OCI Functions can pull from OCIR and the Function can write to Object Storage without public internet access.
 
 ## Step 3: Log In To OCIR
 
@@ -130,15 +132,24 @@ oci os bucket create \
 
 If the bucket already exists, continue.
 
-## Step 6: Create Or Reuse A Functions App
+## Step 6: Create A Dedicated Functions Application
 
-Create a Functions application:
+Create a dedicated Functions application for this Function:
 
 ```bash
 fn create app "${APP_NAME}" --subnet-id "${SUBNET_OCID}"
 ```
 
-If you already have an app, use that app name instead and skip this command.
+You can use a private subnet. The Function does not need inbound public access, but it does need outbound access to OCI services:
+
+```text
+Private subnet: use a Service Gateway to All <region> Services in Oracle Services Network
+Public subnet: use an Internet Gateway route and egress rules
+```
+
+For this project, a private subnet with a Service Gateway is preferred because the Function only needs OCI service access: OCIR for image pull and Object Storage for bucket writes. Oracle documents this Functions networking requirement in the Functions troubleshooting guide: [Issues invoking functions](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionstroubleshooting_topic-Issues-invoking-functions.htm).
+
+If you already created a dedicated app for this Function, reuse that app name and skip this command.
 
 Check apps:
 
@@ -285,4 +296,5 @@ requirements.txt  Function Python dependencies
 - [OCI Functions Cloud Shell quickstart](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsquickstartcloudshell.htm)
 - [OCI Functions custom Dockerfiles](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsusingcustomdockerfiles.htm)
 - [OCI Function configuration parameters](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionspassingconfigparams.htm)
+- [OCI Functions networking troubleshooting](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionstroubleshooting_topic-Issues-invoking-functions.htm)
 - [OCI Connector Hub Logging source](https://docs.public.content.oci.oraclecloud.com/en-us/iaas/Content/connector-hub/create-service-connector-logging-source.htm)
