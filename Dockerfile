@@ -2,7 +2,17 @@ FROM fnproject/python:3.11-dev as build-stage
 
 WORKDIR /function
 COPY requirements.txt .
-RUN pip3 install --target /python/ --no-cache-dir -r requirements.txt
+RUN set -eux; \
+    pip3 install --target /python/ --no-cache-dir --no-compile -r requirements.txt; \
+    for path in /python/oci/*; do \
+        name="$(basename "$path")"; \
+        case "$name" in \
+            auth|object_storage|retry|circuit_breaker|_vendor) ;; \
+            *) if [ -d "$path" ]; then rm -rf "$path"; fi ;; \
+        esac; \
+    done; \
+    find /python -type d -name "__pycache__" -prune -exec rm -rf {} +; \
+    find /python -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
 COPY func.py .
 
 FROM fnproject/python:3.11
