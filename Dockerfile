@@ -7,7 +7,7 @@ RUN set -eux; \
     for path in /python/oci/*; do \
         name="$(basename "$path")"; \
         case "$name" in \
-            auth|object_storage|retry|circuit_breaker|_vendor) ;; \
+            auth|object_storage|dns|pagination|retry|circuit_breaker|fips|developer_tool_configuration|_vendor) ;; \
             *) if [ -d "$path" ]; then rm -rf "$path"; fi ;; \
         esac; \
     done; \
