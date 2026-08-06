@@ -194,7 +194,16 @@ fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP "{}"
 
 OCI Functions exposes these config values as environment variables to the Function. See [OCI custom Function configuration parameters](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionspassingconfigparams.htm).
 
-Keep `LOG_TYPE_MAP` as `{}` for the normal deployment. The Function detects common OCI log types automatically, including VCN flow logs, Object Storage, Audit, Cloud Guard, and Load Balancer logs. Unknown logs go to:
+Keep `LOG_TYPE_MAP` as `{}` for the normal deployment. The Function looks at the OCI event `type` field first and detects common OCI log types automatically, including VCN flow logs, Object Storage, Service Connector Hub, Audit, Cloud Guard, and Load Balancer logs.
+
+Examples:
+
+```text
+com.oraclecloud.objectstorage.putobject -> oci-object-storage
+com.oraclecloud.sch.serviceconnector.runlog -> oci-service-connector
+```
+
+Unknown logs go to:
 
 ```text
 cribl/YYYY/MM/DD/HH/MM/oci-generic/

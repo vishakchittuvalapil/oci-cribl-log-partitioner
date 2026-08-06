@@ -11,6 +11,19 @@ import oci
 from fdk import response
 
 
+OCI_EVENT_TOKEN_LOG_TYPES = {
+    "apigateway": "oci-api-gateway",
+    "audit": "oci-audit",
+    "cloudguard": "oci-cloud-guard",
+    "functions": "oci-functions",
+    "loadbalancer": "oci-load-balancer",
+    "objectstorage": "oci-object-storage",
+    "sch": "oci-service-connector",
+    "serviceconnector": "oci-service-connector",
+    "waf": "oci-waf",
+}
+
+
 def handler(ctx, data: io.BytesIO = None):
     mode = os.environ.get("FUNCTION_MODE", "target_writer").lower()
     log_type_map = load_log_type_map()
@@ -174,14 +187,12 @@ def detect_sourcetype(record, log_type_map):
     if log_id and log_id in log_type_map:
         return sanitize_path_part(log_type_map[log_id])
 
-    log_content = record.get("logContent", {})
-    event_type = (
-        log_content.get("type")
-        or record.get("type")
-        or get_nested(record, ["data", "type"])
-        or ""
-    )
-    source = log_content.get("source") or record.get("source") or ""
+    event_type = get_event_type(record)
+    log_type = get_log_type_from_event_type(event_type)
+    if log_type:
+        return log_type
+
+    source = get_event_source(record)
 
     text = f"{event_type} {source}".lower()
 
@@ -197,6 +208,62 @@ def detect_sourcetype(record, log_type_map):
         return "oci-load-balancer"
 
     return "oci-generic"
+
+
+def get_event_type(record):
+    for path in [
+        ["logContent", "type"],
+        ["type"],
+        ["data", "type"],
+        ["data", "logContent", "type"],
+        ["logContent", "data", "type"],
+    ]:
+        value = get_nested(record, path)
+        if value:
+            return str(value)
+
+    return ""
+
+
+def get_event_source(record):
+    for path in [
+        ["logContent", "source"],
+        ["source"],
+        ["data", "source"],
+        ["data", "logContent", "source"],
+        ["logContent", "data", "source"],
+    ]:
+        value = get_nested(record, path)
+        if value:
+            return str(value)
+
+    return ""
+
+
+def get_log_type_from_event_type(event_type):
+    normalized = str(event_type or "").strip().lower()
+    if not normalized:
+        return None
+
+    tokens = [token for token in re.split(r"[^a-z0-9]+", normalized) if token]
+    token_set = set(tokens)
+
+    if ("vcn" in token_set or "virtualnetwork" in token_set) and (
+        "flow" in token_set or "flowlog" in token_set or "flowlogs" in token_set
+    ):
+        return "oci-vcn-flow"
+
+    for token in tokens:
+        log_type = OCI_EVENT_TOKEN_LOG_TYPES.get(token)
+        if log_type:
+            return log_type
+
+    if "oraclecloud" in tokens:
+        index = tokens.index("oraclecloud")
+        if index + 1 < len(tokens):
+            return f"oci-{sanitize_path_part(tokens[index + 1])}"
+
+    return None
 
 
 def get_log_id(record):
