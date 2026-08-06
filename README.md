@@ -47,14 +47,11 @@ git clone https://github.com/vishakchittuvalapil/oci-cribl-log-partitioner.git
 cd oci-cribl-log-partitioner
 ```
 
-If you cloned this repo earlier, pull the latest files before deploying:
+If you cloned this repo earlier, update it before continuing:
 
 ```bash
 git pull origin main
-ls -l func.yaml Dockerfile func.py requirements.txt
 ```
-
-`fn deploy` must be run from the directory that contains `func.yaml`.
 
 ## Step 2: Set Variables
 
@@ -69,7 +66,6 @@ export APP_NAME="cribl-log-partitioner-app"
 export FUNCTION_NAME="cribl-oci-log-partitioner"
 export BUCKET_NAME="Cribl_SIEM"
 export NAMESPACE="$(oci os ns get --query data --raw-output)"
-echo "${APP_NAME}"
 ```
 
 Use the region values for your OCI region. For example, Ashburn is:
@@ -172,8 +168,6 @@ fn list apps
 Deploy from the repo directory:
 
 ```bash
-ls -l func.yaml
-echo "${APP_NAME}"
 fn -v deploy --app "${APP_NAME}"
 ```
 
