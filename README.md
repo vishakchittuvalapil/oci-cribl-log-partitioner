@@ -209,6 +209,38 @@ Unknown logs go to:
 cribl/YYYY/MM/DD/HH/MM/oci-generic/
 ```
 
+## Adding Other Log Types
+
+If a log is not detected the way you want, you have two options.
+
+Use a runtime override when only a few specific logs need custom folder names:
+
+```bash
+fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP '{"<LOG_OCID>":"oci-custom-log-type"}'
+```
+
+Update the code when you want a reusable rule for a service or event type. In `func.py`, add the event token to `OCI_EVENT_TOKEN_LOG_TYPES`:
+
+```python
+OCI_EVENT_TOKEN_LOG_TYPES = {
+    "objectstorage": "oci-object-storage",
+    "sch": "oci-service-connector",
+    "myservice": "oci-my-service",
+}
+```
+
+For an event type like:
+
+```text
+com.oraclecloud.myservice.someaction
+```
+
+the Function will write to:
+
+```text
+cribl/YYYY/MM/DD/HH/MM/oci-my-service/
+```
+
 ## Step 9: Create IAM Access
 
 The Function needs permission to write to the bucket. Create a dynamic group for functions in your compartment:
