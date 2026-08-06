@@ -58,7 +58,7 @@ export COMPARTMENT_OCID="<COMPARTMENT_OCID>"
 export SUBNET_OCID="<PRIVATE_OR_PUBLIC_SUBNET_OCID>"
 export APP_NAME="cribl-log-partitioner-app"
 export FUNCTION_NAME="cribl-oci-log-partitioner"
-export BUCKET_NAME="CriblOutput"
+export BUCKET_NAME="Cribl_SIEM"
 export NAMESPACE="$(oci os ns get --query data --raw-output)"
 ```
 
@@ -262,7 +262,7 @@ Configure Cribl to read from OCI Object Storage using the S3-compatible collecto
 Recommended values:
 
 ```text
-Bucket: CriblOutput
+Bucket: Cribl_SIEM
 Prefix: cribl/
 Format: json or ndjson
 Compression: gzip

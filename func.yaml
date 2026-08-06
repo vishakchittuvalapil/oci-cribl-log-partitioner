@@ -5,6 +5,7 @@ runtime: docker
 memory: 256
 timeout: 120
 config:
+  BUCKET_NAME: Cribl_SIEM
   FUNCTION_MODE: target_writer
   OBJECT_PREFIX: cribl
   INCLUDE_MINUTE: "true"
