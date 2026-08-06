@@ -188,13 +188,7 @@ fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP "{}"
 
 OCI Functions exposes these config values as environment variables to the Function. See [OCI custom Function configuration parameters](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionspassingconfigparams.htm).
 
-Optional: after you choose log sources, map specific log OCIDs to Cribl folder names:
-
-```bash
-fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP '{"<VCN_FLOW_LOG_OCID>":"oci-vcn-flow","<OBJECT_STORAGE_LOG_OCID>":"oci-object-storage"}'
-```
-
-If `LOG_TYPE_MAP` is `{}`, the Function still tries to detect common OCI log types automatically. Unknown logs go to:
+Keep `LOG_TYPE_MAP` as `{}` for the normal deployment. The Function detects common OCI log types automatically, including VCN flow logs, Object Storage, Audit, Cloud Guard, and Load Balancer logs. Unknown logs go to:
 
 ```text
 cribl/YYYY/MM/DD/HH/MM/oci-generic/
