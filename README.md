@@ -213,13 +213,15 @@ cribl/YYYY/MM/DD/HH/MM/oci-generic/
 
 If a log is not detected the way you want, you have two options.
 
-Use a runtime override when only a few specific logs need custom folder names:
+1. Use a runtime override when only a few specific logs need custom folder names:
 
 ```bash
 fn config function "${APP_NAME}" "${FUNCTION_NAME}" LOG_TYPE_MAP '{"<LOG_OCID>":"oci-custom-log-type"}'
 ```
 
-Update the code when you want a reusable rule for a service or event type. In `func.py`, add the event token to `OCI_EVENT_TOKEN_LOG_TYPES`:
+2. Update the code when you want a reusable rule for a service or event type.
+
+In `func.py`, add the event token to `OCI_EVENT_TOKEN_LOG_TYPES`:
 
 ```python
 OCI_EVENT_TOKEN_LOG_TYPES = {
